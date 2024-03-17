@@ -30,7 +30,7 @@ jobs:
           -backend-config="bucket=${{ secrets.BUCKET }}" \
           -backend-config="key=${{ secrets.KEY }}" \
           -backend-config="region=${{ secrets.AWS_DEFAULT_REGION }}" \
-          -backend-config="endpoint=${{ secrets.ENDPOINT }}"
+          -backend-config="endpoints.s3=${{ secrets.ENDPOINT }}"
 
     - name: Terraform Plan
       run: |
