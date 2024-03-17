@@ -10,8 +10,6 @@ jobs:
   terraform:
     name: Terraform
     runs-on: ubuntu-latest
-    env:
-        AWS_ENDPOINT_URL_S3: "${{ secrets.ENDPOINT }}}"
 
     defaults:
       run:
