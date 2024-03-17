@@ -24,6 +24,7 @@ jobs:
 
     - name: Terraform Initialize
       run: |
+        cd terraform
         terraform init -backend-config="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
           -backend-config="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
           -backend-config="bucket=${{ secrets.BUCKET }}" \
@@ -33,6 +34,7 @@ jobs:
 
     - name: Terraform Plan
       run: |
+        cd terraform
         terraform plan -var "user_name=${{ secrets.USER_NAME }}" \
           -var "password=${{ secrets.PASSWORD }}" \
           -var "tenant_name=${{ secrets.TENANT_NAME }}" \
@@ -46,5 +48,6 @@ jobs:
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: |
+          cd terraform
           chmod +x ./setup.sh
           terraform apply tfplan
