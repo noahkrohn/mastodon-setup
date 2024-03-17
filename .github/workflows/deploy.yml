@@ -24,13 +24,13 @@ jobs:
 
     - name: Terraform Initialize
       run: |
-          cd terraform 
+          cd terraform
           terraform init -backend-config="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            -backend-config="endpoints={s3=${{ secrets.ENDPOINT }}}" \
             -backend-config="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             -backend-config="bucket=${{ secrets.BUCKET }}" \
             -backend-config="key=${{ secrets.KEY }}" \
-            -backend-config="region=${{ secrets.AWS_DEFAULT_REGION }}" \
-            -backend-config="endpoints={s3=${{ secrets.ENDPOINT }}}"
+            -backend-config="region=${{ secrets.AWS_DEFAULT_REGION }}"
 
     - name: Terraform Plan
       run: |
