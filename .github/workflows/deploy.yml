@@ -26,7 +26,7 @@ jobs:
 
     - name: Terraform Initialize
       run: |
-        terraform init -backend-config="endpoints=\\{s3="${{ secrets.ENDPOINT }}"\\}" \
+        terraform init -backend-config='endpoints={s3="${{ secrets.ENDPOINT }}"}' \
           -backend-config="bucket=${{ secrets.BUCKET }}" \
           -backend-config="key=${{ secrets.KEY }}" \
           -backend-config="region=${{ secrets.REGION }}" \
