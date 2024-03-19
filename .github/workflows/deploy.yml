@@ -29,30 +29,3 @@ jobs:
         aws-region: "${{ secrets.AWS_DEFAULT_REGION }}"
         aws-access-key-id: "${{ secrets.AWS_ACCESS_KEY_ID }}"
         aws-secret-access-key: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-
-    - name: Terraform Initialize
-      run: |
-          cd terraform
-          terraform init -backend-config="access_key=" \
-            -backend-config="bucket=${{ secrets.BUCKET }}" \
-            -backend-config="key=${{ secrets.KEY }}" \
-
-    - name: Terraform Plan
-      run: |
-          cd terraform
-          terraform plan -var "user_name=${{ secrets.USER_NAME }}" \
-            -var "password=${{ secrets.PASSWORD }}" \
-            -var "tenant_name=${{ secrets.TENANT_NAME }}" \
-            -var "tenant_id=${{ secrets.TENANT_ID }}" \
-            -var "auth_url=${{ secrets.AUTH_URL }}" \
-            -var "public_key=${{ secrets.PUBLIC_KEY }}" \
-            -var "remote_ip_prefix=${{ secrets.REMOTE_IP_PREFIX }}" \
-            -var "region=${{ secrets.REGION }}" \
-            -out tfplan
-
-    - name: Terraform Apply
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: |
-          cd terraform
-          chmod +x ./setup.sh
-          terraform apply tfplan
