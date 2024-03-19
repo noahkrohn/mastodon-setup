@@ -1,0 +1,200 @@
+- hosts: all
+  gather_facts: true
+  become: true
+#  vars:
+#    ansible_connection: local
+#    ansible_python_interpreter: "{{ansible_playbook_python}}"
+  tasks:
+    - name: install needed packages
+      ansible.builtin.apt:
+        pkg:
+          - certbot
+          - build-essential
+          - curl
+          - wget
+          - gnupg
+          - apt-transport-https
+          - lsb-release
+          - ca-certificates
+          - gcc
+          - g++
+          - make
+        state: present
+    - name: download stable nodejs script
+      ansible.builtin.get_url:
+        url: https://deb.nodesource.com/setup_16.x
+        dest: /tmp/setup_16.sh
+        mode: "a+x"
+    - name: install nodejs from downloaded script
+      ansible.builtin.shell: /tmp/setup_16.sh
+    - name: download postgresql keyring
+      ansible.builtin.get_url:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        dest: /usr/share/keyrings/postgresql.asc
+    - name: add postgresql repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/postgresql.asc] http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+        state: present
+    - name: install additional needed packages
+      ansible.builtin.apt:
+        pkg:
+          - imagemagick
+          - ffmpeg
+          - libpq-dev
+          - libxml2-dev
+          - libxslt1-dev
+          - file
+          - git-core
+          - libprotobuf-dev
+          - protobuf-compiler
+          - pkg-config
+          - nodejs
+          - autoconf
+          - bison
+          - libssl-dev
+          - libyaml-dev
+          - libreadline6-dev
+          - zlib1g-dev
+          - libncurses5-dev
+          - libffi-dev
+          - libgdbm-dev
+          - nginx
+          - redis-server
+          - redis-tools
+          - postgresql
+          - postgresql-contrib
+          - python3-certbot-nginx
+          - libidn11-dev
+          - libicu-dev
+          - libjemalloc-dev
+          - rbenv
+          - python3-psycopg2
+          - ruby
+          - bundler
+          - libsasl2-modules
+          - postfix
+        state: present
+    - name: enable corepack
+      ansible.builtin.command: corepack enable
+    - name: set yarn version classic
+      ansible.builtin.command: yarn set version classic
+    - name: create the mount point for the mastodon home user
+      community.general.parted:
+        device: /dev/vdb
+        label: gpt
+        number: 1
+        state: present
+        fs_type: xfs
+    - name: create an xfs filesystem on /dev/vdb1
+      community.general.filesystem:
+        fstype: xfs
+        dev: /dev/vdb1
+    - name: gather facts again now that device info has changed
+      ansible.builtin.setup:
+        gather_subset:
+          - 'devices'
+    - name: setup opt mount for mastodon
+      ansible.posix.mount:
+        path: /opt
+        src: "UUID={{ ansible_devices.vdb.partitions.vdb1.uuid }}"
+        fstype: xfs
+        boot: true
+        state: present
+    - name: reboot system
+      ansible.builtin.reboot:
+    - name: add the mastodon user
+      ansible.builtin.user:
+        name: mastodon
+        comment: Mastodon User
+        home: /opt/mastodon
+        password_lock: true
+        groups: postgres
+        shell: /bin/bash
+        create_home: true
+    - name: disable ipv6.conf.all temporarily so gems can install properly
+      ansible.posix.sysctl:
+        name: net.ipv6.conf.all.disable_ipv6
+        value: '1'
+        state: present
+        reload: no
+    - name: disable ipv6.default temporarily so gems can install properly
+      ansible.posix.sysctl:
+        name: net.ipv6.conf.default.disable_ipv6
+        value: '1'
+        state: present
+        reload: no
+    - name: disable ipv6.conf.lo temporarily so gems can install properly
+      ansible.posix.sysctl:
+        name: net.ipv6.conf.lo.disable_ipv6
+        value: '1'
+        state: present
+        reload: yes
+    - name: create mastodon postgresql database
+      community.postgresql.postgresql_db:
+        name: mastodon
+      become_user: mastodon
+    - name: create mastodon postgresql user
+      community.postgresql.postgresql_user:
+        db: mastodon
+        name: mastodon
+        priv: ALL
+        comment: Mastodon PostgreSQL User
+      become_user: mastodon
+    # - name: reassign ownership of db to mastodon user
+    #   community.postgresql.postgresql_owner:
+    #     db: mastodon
+    #     new_owner: mastodon
+    #   become_user: postgres
+    - name: clone mastodon git repo locally
+      ansible.builtin.git:
+        repo: https://github.com/mastodon/mastodon.git
+        dest: ~/live
+      become_user: mastodon
+    - name: set mastodon repo as safe
+      ansible.builtin.shell: git config --global --add safe.directory /opt/mastodon/live
+      become_user: mastodon
+    - name: get release tag from git
+      ansible.builtin.shell: git tag -l | grep -v 'rc[0-9]*$' | sort -V | tail -n 1
+      args:
+        chdir: ~/live
+      register: git_ver
+      become_user: mastodon
+    - name: checkout mastodon version {{ git_ver.stdout }}
+      ansible.builtin.git:
+        repo: https://github.com/mastodon/mastodon.git
+        dest: ~/live
+        version: "{{ git_ver.stdout }}"
+      become_user: mastodon
+    - name: get processor info
+      ansible.builtin.shell: echo $(getconf _NPROCESSORS_ONLN)
+      register: proc_info
+      become_user: mastodon
+    - name: install ruby and javascript dependencies
+      ansible.builtin.shell: |
+        bundle config deployment 'true'
+        bundle config without 'development test'
+        bundle install -j{{ proc_info.stdout }}
+        yarn install --pure-lockfile
+      args:
+        chdir: ~/live
+      become_user: mastodon
+    - name: enable ipv6.conf.all
+      ansible.posix.sysctl:
+        name: net.ipv6.conf.all.disable_ipv6
+        value: '0'
+        state: present
+        reload: no
+    - name: enable ipv6.default
+      ansible.posix.sysctl:
+        name: net.ipv6.conf.default.disable_ipv6
+        value: '0'
+        state: present
+        reload: no
+    - name: enable ipv6.conf.lo
+      ansible.posix.sysctl:
+        name: net.ipv6.conf.lo.disable_ipv6
+        value: '0'
+        state: present
+        reload: yes
+    - name: reboot system
+      ansible.builtin.reboot:
