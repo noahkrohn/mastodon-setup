@@ -24,7 +24,6 @@ jobs:
 
     - name: Terraform Initialize
       run: |
-        cd ./terraform
         terraform init -backend-config="endpoints={s3="${{ secrets.ENDPOINT }}"}" \
           -backend-config="bucket=${{ secrets.BUCKET }}" \
           -backend-config="key=${{ secrets.KEY }}" \
