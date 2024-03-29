@@ -29,7 +29,7 @@ resource "null_resource" "cloud-init" {
       host        = openstack_compute_instance_v2.webserver.access_ip_v4
       type        = "ssh"
       user        = "ubuntu"
-      private_key = file("~/.ssh/id_rsa")
+      private_key = var.private_key
     }
   }
   provisioner "remote-exec" {
@@ -41,7 +41,7 @@ resource "null_resource" "cloud-init" {
       host        = openstack_compute_instance_v2.webserver.access_ip_v4
       type        = "ssh"
       user        = "ubuntu"
-      private_key = file("~/.ssh/id_rsa")
+      private_key = var.private_key
       timeout     = "20m"
     }
   }
@@ -62,7 +62,7 @@ resource "null_resource" "ansible" {
       host        = openstack_compute_instance_v2.webserver.access_ip_v4
       type        = "ssh"
       user        = "ubuntu"
-      private_key = file("~/.ssh/id_rsa")
+      private_key = var.private_key
     }
   }
   # provisioner "local-exec" {
@@ -73,7 +73,7 @@ resource "null_resource" "ansible" {
   #    host        = openstack_compute_instance_v2.webserver.access_ip_v4
   #    type        = "ssh"
   #    user        = "ubuntu"
-  #    private_key = file("~/.ssh/id_rsa")
+  #    private_key = var.private_key
   #    timeout     = "20m"
   #  }
   # }

@@ -28,6 +28,11 @@ variable "public_key" {
   description = ""
 }
 
+variable "private_key" {
+  type        = string
+  description = ""
+}
+
 variable "remote_ip_prefix" {
   type        = string
   description = ""
