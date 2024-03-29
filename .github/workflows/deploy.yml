@@ -47,3 +47,9 @@ jobs:
           -var "runner_ip_prefix=$current_ip"\
           -var "region=${{ secrets.REGION }}" \
           -out tfplan
+
+    - name: Terraform Apply
+      run: |
+        chmod +x ./setup.sh
+        chmod +x ./wait.sh
+        terraform apply tfplan
