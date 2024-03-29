@@ -4,15 +4,15 @@ resource "openstack_compute_instance_v2" "webserver" {
   security_groups = ["default"]
   flavor_name     = "gp1.lightspeed"
   image_id        = data.openstack_images_image_v2.ubuntu.id
-  user_data       = "${file("setup.sh")}"
+  user_data       = file("setup.sh")
   network {
     name = "public"
   }
 }
 
 resource "openstack_compute_volume_attach_v2" "webserver" {
-  instance_id     = openstack_compute_instance_v2.webserver.id
-  volume_id       = openstack_blockstorage_volume_v3.web_data.id
+  instance_id = openstack_compute_instance_v2.webserver.id
+  volume_id   = openstack_blockstorage_volume_v3.web_data.id
   depends_on = [
     openstack_compute_instance_v2.webserver
   ]
@@ -23,8 +23,8 @@ resource "null_resource" "cloud-init" {
     default_instance_id = openstack_compute_instance_v2.webserver.id
   }
   provisioner "file" {
-    source        = "wait.sh"
-    destination   = "/tmp/wait.sh"
+    source      = "wait.sh"
+    destination = "/tmp/wait.sh"
     connection {
       host        = openstack_compute_instance_v2.webserver.access_ip_v4
       type        = "ssh"
@@ -56,8 +56,8 @@ resource "null_resource" "ansible" {
     default_instance_id = openstack_compute_instance_v2.webserver.id
   }
   provisioner "file" {
-    source        = "setup.yaml"
-    destination   = "/tmp/setup.yaml"
+    source      = "setup.yaml"
+    destination = "/tmp/setup.yaml"
     connection {
       host        = openstack_compute_instance_v2.webserver.access_ip_v4
       type        = "ssh"
