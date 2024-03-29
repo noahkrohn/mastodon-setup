@@ -35,6 +35,7 @@ jobs:
 
     - name: Terraform Plan
       run: |
+        current_ip=$(curl https://api.ipify.org)
         terraform plan -var "user_name=${{ secrets.USER_NAME }}" \
           -var "password=${{ secrets.PASSWORD }}" \
           -var "tenant_name=${{ secrets.TENANT_NAME }}" \
@@ -43,5 +44,6 @@ jobs:
           -var "public_key=${{ secrets.PUBLIC_KEY }}" \
           -var "private_key=${{ secrets.PRIVATE_KEY }}" \
           -var "remote_ip_prefix=${{ secrets.REMOTE_IP_PREFIX }}" \
+          -var "runner_ip_prefix=$current_ip"\
           -var "region=${{ secrets.REGION }}" \
           -out tfplan

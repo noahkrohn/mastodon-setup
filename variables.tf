@@ -38,6 +38,11 @@ variable "remote_ip_prefix" {
   description = ""
 }
 
+variable "runner_ip_prefix" {
+  type        = string
+  description = ""
+}
+
 variable "region" {
   type        = string
   description = ""
