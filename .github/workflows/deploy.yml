@@ -41,6 +41,7 @@ jobs:
           -var "tenant_id=${{ secrets.TENANT_ID }}" \
           -var "auth_url=${{ secrets.AUTH_URL }}" \
           -var "public_key=${{ secrets.PUBLIC_KEY }}" \
+          -var "private_key=${{ secrets.PRIVATE_KEY }}" \
           -var "remote_ip_prefix=${{ secrets.REMOTE_IP_PREFIX }}" \
           -var "region=${{ secrets.REGION }}" \
           -out tfplan
