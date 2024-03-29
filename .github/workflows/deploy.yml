@@ -36,7 +36,7 @@ jobs:
     - name: Terraform Plan
       run: |
         current_ip=$(curl https://api.ipify.org)
-        terraform plan -var "user_name=${{ secrets.USER_NAME }}" \
+        terraform plan -destroy -var "user_name=${{ secrets.USER_NAME }}" \
           -var "password=${{ secrets.PASSWORD }}" \
           -var "tenant_name=${{ secrets.TENANT_NAME }}" \
           -var "tenant_id=${{ secrets.TENANT_ID }}" \
@@ -52,4 +52,4 @@ jobs:
       run: |
         chmod +x ./setup.sh
         chmod +x ./wait.sh
-        terraform apply tfplan
+        terraform apply -destroy tfplan
